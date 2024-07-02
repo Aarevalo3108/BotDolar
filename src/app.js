@@ -16,7 +16,7 @@ const dolarBolivarFlow = addKeyword(['1'], {sensitive: true})
 	.addAction(async (ctx,{flowDynamic,fallBack,endFlow,gotoFlow}) => {
 		try{
 			// test with regex
-			if(!isNaN(ctx.body) && ctx.body > 0) {
+			if(!isNaN(Number(ctx.body)) && Math.sign(Number(ctx.body)) == 1) {
 				reset(ctx, gotoFlow, clock)
 				await flowDynamic('Por favor ingrese un valor numerico valido.')
 				return fallBack()
@@ -41,7 +41,7 @@ const bolivarDolarFlow = addKeyword(['2'], {sensitive: true})
 	.addAnswer('Cuantos bolivares?:',{capture: true},{delay: 300})
 	.addAction( async (ctx,{flowDynamic,fallBack, endFlow, gotoFlow}) => {
 		try{
-			if(!isNaN(ctx.body) && ctx.body > 0) {
+			if(!isNaN(Number(ctx.body)) && Math.sign(Number(ctx.body)) == 1) {
 			reset(ctx, gotoFlow, clock)
 				await flowDynamic('Por favor ingrese un valor numerico valido.')
 				return fallBack()
