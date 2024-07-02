@@ -6,6 +6,7 @@ import { idleFlow, reset, start, stop, clock } from './idle-custom.js'
 
 import setDolar from './setDolar.js'
 
+
 const prices = [0,0];
 const PORT = process.env.PORT ?? 3008
 const dolarTimer = 60 * 60 * 1000; // 60 minutes
@@ -16,7 +17,7 @@ const dolarBolivarFlow = addKeyword(['1'], {sensitive: true})
 	.addAction(async (ctx,{flowDynamic,fallBack,endFlow,gotoFlow}) => {
 		try{
 			// test with regex
-			if(!isNaN(Number(ctx.body)) && Math.sign(Number(ctx.body)) == 1) {
+			if(isNaN(Number(ctx.body)) && Math.sign(Number(ctx.body)) != 1) {
 				reset(ctx, gotoFlow, clock)
 				await flowDynamic('Por favor ingrese un valor numerico valido.')
 				return fallBack()
@@ -41,7 +42,7 @@ const bolivarDolarFlow = addKeyword(['2'], {sensitive: true})
 	.addAnswer('Cuantos bolivares?:',{capture: true},{delay: 300})
 	.addAction( async (ctx,{flowDynamic,fallBack, endFlow, gotoFlow}) => {
 		try{
-			if(!isNaN(Number(ctx.body)) && Math.sign(Number(ctx.body)) == 1) {
+			if(isNaN(Number(ctx.body)) && Math.sign(Number(ctx.body)) != 1) {
 			reset(ctx, gotoFlow, clock)
 				await flowDynamic('Por favor ingrese un valor numerico valido.')
 				return fallBack()
