@@ -3,21 +3,37 @@ import { createBot, createProvider, createFlow, addKeyword, EVENTS } from '@buil
 import { MemoryDB as Database } from '@builderbot/bot'
 import { BaileysProvider as Provider } from '@builderbot/provider-baileys'
 import { idleFlow, reset, start, stop, clock } from './idle-custom.js'
-
+import schedule from 'node-schedule'
+import 'dotenv/config'
 import setDolar from './setDolar.js'
 
 
 const prices = [0,0];
 const PORT = process.env.PORT ?? 3008
-const dolarTimer = 60 * 60 * 1000; // 60 minutes
+const rule = {
+	dayOfWeek: [1, 2, 3, 4, 5],
+	hour: [8,9,10,13,14,15],
+	minute: 30
+}
 
-const dolarBolivarFlow = addKeyword(['1'], {sensitive: true})
+const resetFlow = addKeyword(process.env.KEYWORD, { sensitive: true }).addAction(async (_, { endFlow }) => {
+	try {
+		await setDolar(prices)
+		const BCV = Number(prices[0]).toFixed(2)
+		const ENP = Number(prices[1]).toFixed(2)
+		return endFlow(`Dolar actualizado!. \nBCV: ${BCV} Bs. \nENP: ${ENP} Bs.`)
+	} catch (error) {
+		console.log(error)
+	}
+})
+
+const dolarBolivarFlow = addKeyword(`/^1$/g`, {regex: true})
 	.addAction(async (ctx, { gotoFlow }) => {start(ctx, gotoFlow, clock)})
 	.addAnswer('Cuantos dolares?:',{capture: true},{delay: 300})
 	.addAction(async (ctx,{flowDynamic,fallBack,endFlow,gotoFlow}) => {
 		try{
 			// test with regex
-			if(isNaN(Number(ctx.body)) && Math.sign(Number(ctx.body)) != 1) {
+			if(isNaN(ctx.body) || Math.sign(ctx.body) != 1) {
 				reset(ctx, gotoFlow, clock)
 				await flowDynamic('Por favor ingrese un valor numerico valido.')
 				return fallBack()
@@ -37,13 +53,14 @@ const dolarBolivarFlow = addKeyword(['1'], {sensitive: true})
 	}
 }, {delay: 300})
 
-const bolivarDolarFlow = addKeyword(['2'], {sensitive: true})
+const bolivarDolarFlow = addKeyword(`/^2$/g`, {regex: true})
 	.addAction(async (ctx, { gotoFlow }) => {start(ctx, gotoFlow, clock)})
 	.addAnswer('Cuantos bolivares?:',{capture: true},{delay: 300})
 	.addAction( async (ctx,{flowDynamic,fallBack, endFlow, gotoFlow}) => {
 		try{
-			if(isNaN(Number(ctx.body)) && Math.sign(Number(ctx.body)) != 1) {
-			reset(ctx, gotoFlow, clock)
+			// test with regex
+			if(isNaN(ctx.body) || Math.sign(ctx.body) != 1) {
+				reset(ctx, gotoFlow, clock)
 				await flowDynamic('Por favor ingrese un valor numerico valido.')
 				return fallBack()
 		}
@@ -76,7 +93,7 @@ const welcomeFlow = addKeyword(EVENTS.WELCOME)
 	}, {delay: 300})
 
 const main = async () => {
-    const adapterFlow = createFlow([welcomeFlow,dolarBolivarFlow,bolivarDolarFlow,idleFlow])
+    const adapterFlow = createFlow([welcomeFlow,dolarBolivarFlow,bolivarDolarFlow,idleFlow,resetFlow])
     const adapterProvider = createProvider(Provider)
     const adapterDB = new Database()
 
@@ -126,7 +143,9 @@ const main = async () => {
     )
 
     setDolar(prices)
-    setInterval(() => setDolar(prices), dolarTimer)
+		schedule.scheduleJob(rule, async () => {
+			await setDolar(prices)
+		})
     httpServer(+PORT)
 }
 
