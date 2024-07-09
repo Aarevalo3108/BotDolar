@@ -12,7 +12,7 @@ const prices = [0,0];
 const PORT = process.env.PORT ?? 3008
 const rule = {
 	dayOfWeek: [1, 2, 3, 4, 5],
-	hour: [8,9,10,13,14,15],
+	hour: [12,13,14,17,18,19], // horas para railways, region us-west1
 	minute: 30
 }
 
