@@ -1,7 +1,7 @@
 import axios from "axios";
 import {colors} from '@gamastudio/colorslog';
 
-const url = "http://pydolarve.org/api/v1/dollar";
+const url = "https://pydolarve.org/api/v1/dollar";
 const setDolar = async (array) => {
 	try
 	{
